@@ -4,7 +4,9 @@ import (
     "log/slog"
     // "fmt"  
     "os"  
+    "project/internal/storage/sqlite"
 	"project/internal/config"
+    "project/internal/lib/logger/sl"
 )
 
 const (
@@ -20,10 +22,21 @@ func main() {
     log := setupLogger(cfg.Env)
 
     log.Info("starting backend", slog.String("env", cfg.Env))
+
+    storage, err := sqlite.New(cfg.StoragePath)
+
+    if err != nil {
+        log.Error("failed to init db", sl.Err(err))
+        os.Exit(1)
+    }
+
+    _ = storage
+
     // TODO: init logger : slog
     // TODO: init db : gorm
     // TODO: init router : chi, chirender
     // TODO: init storage : sqlIte
+    
 }
 
 
