@@ -8,8 +8,9 @@ import (
 
 	resp "project/internal/lib/api/response"
 	"project/internal/lib/logger/sl"
-	"encoding/json"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
+	"github.com/go-playground/validator/v10"
 )
 
 type URLSaver interface {
@@ -33,14 +34,30 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 		
 		log = log.With(
 			slog.String("op", op),
-			slog.String("request_id", r.Context().Value(middleware.RequestIDKey).(string)),
+			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
 		var req Request
 
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			log.Error("failed to decode request", sl.Err(err))
+		err := render.DecodeJSON(r.Body, &req)
+
+		if err != nil {
+			log.Error("failed to decode request body", sl.Err(err))
+
+			render.JSON(w, r, resp.Error("failed to decode request"))
+
+			return 
 		}
 
+		log.Info("request body decoded", slog.Any("request", req))
+
+
+		if err := validator.New().Struct(req); err != nil {
+			log.Error("invalid request", sl.Err(err))
+
+			render.JSON(w, r, resp.Error("invalid request"))
+
+			return
+		}
 	}
 }
