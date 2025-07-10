@@ -36,8 +36,9 @@ func main() {
 	_ = storage
 
 	router := chi.NewRouter()
-	
+
 	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
 	router.Use(middleware.Logger)
 
 	
