@@ -2,13 +2,14 @@ package main
 
 import (
 	"log/slog"
+	_ "net/http"
 	// "fmt"
 	"os"
 	"project/internal/config"
 	"project/internal/lib/logger/sl"
 	"project/internal/storage/sqlite"
 	"github.com/go-chi/chi/v5"
-	_ "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 const (
@@ -35,8 +36,12 @@ func main() {
 	_ = storage
 
 	router := chi.NewRouter()
+	
+	router.Use(middleware.RequestID)
+	router.Use(middleware.Logger)
 
 	
+
 	// TODO: init logger : slog
 	// TODO: init db : gorm
 	// TODO: init router : chi, chirender

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	_ "modernc.org/sqlite"
+	_ "modernc.org/sqlite" // init sqlite driver
 )
 
 type Storage struct {
@@ -86,6 +86,7 @@ func (s *Storage) DeleteUrl(alias string) error {
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
+	defer stmt.Close()	
 
 	_, err = stmt.Exec(alias)
 	if err != nil {
