@@ -37,8 +37,8 @@ func New(storagePath string) (*Storage, error) {
 	return &Storage{db: db}, nil
 }
 
-func (s *Storage) SaveUrl(urlToSave string, alias string) (int64, error) {
-	const op = "storage.sqlite.SaveUrl"
+func (s *Storage) SaveURL(urlToSave string, alias string) (int64, error) {
+	const op = "storage.sqlite.SaveURL"
 
 	stmt, err := s.db.Prepare(`INSERT INTO url(url, alias) VALUES(?, ?)`)
 	if err != nil {
@@ -58,7 +58,6 @@ func (s *Storage) SaveUrl(urlToSave string, alias string) (int64, error) {
 
 	return id, nil
 }
-
 
 func (s *Storage) GetUrl(alias string) (string, error) {
 	const op = "storage.sqlite.GetUrl"
@@ -86,7 +85,7 @@ func (s *Storage) DeleteUrl(alias string) error {
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
-	defer stmt.Close()	
+	defer stmt.Close()
 
 	_, err = stmt.Exec(alias)
 	if err != nil {
@@ -96,3 +95,20 @@ func (s *Storage) DeleteUrl(alias string) error {
 	return nil
 }
 
+func (s *Storage) AliasExists(alias string) (bool, error) {
+	const op = "storage.sqlite.AliasExists"
+
+	stmt, err := s.db.Prepare(`SELECT COUNT(*) FROM url WHERE alias = ?`)
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+	defer stmt.Close()
+
+	var count int
+	err = stmt.QueryRow(alias).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return count > 0, nil
+}

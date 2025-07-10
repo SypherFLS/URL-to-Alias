@@ -2,16 +2,19 @@ package main
 
 import (
 	"log/slog"
-	_ "net/http"
+	"net/http"
+
 	// "fmt"
 	"os"
 	"project/internal/config"
+	"project/internal/http-server/handlers/url/save"
+	"project/internal/http-server/middleware/logger"
+	"project/internal/lib/logger/handlers/slogpretty"
 	"project/internal/lib/logger/sl"
 	"project/internal/storage/sqlite"
-	"project/internal/http-server/middleware/logger"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"project/internal/lib/logger/handlers/slogpretty"
 )
 
 const (
@@ -38,8 +41,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	_ = storage
-
 	router := chi.NewRouter()
 
 	router.Use(middleware.RequestID)
@@ -50,11 +51,16 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 
-	// TODO: init logger : slog
-	// TODO: init db : gorm
-	// TODO: init router : chi, chirender
-	// TODO: init storage : sqlIte
+	router.Post("/url", save.New(log, storage))
+	
 
+	log.Info("starting server", slog.String("address", cfg.HTTP.Address))
+
+
+	if err := http.ListenAndServe(cfg.HTTP.Address, router); err != nil {
+		log.Error("failed to start server", sl.Err(err))
+		os.Exit(1)
+	}
 }
 
 func setupLogger(env string) *slog.Logger {
@@ -79,7 +85,6 @@ func setupLogger(env string) *slog.Logger {
 	return log
 
 }
-
 
 func setupPrettySlog() *slog.Logger {
 	opts := slogpretty.PrettyHandlerOptions{
