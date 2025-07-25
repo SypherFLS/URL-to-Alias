@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	"project/internal/storage"
+
 	_ "modernc.org/sqlite" // init sqlite driver
 )
 
@@ -111,4 +113,30 @@ func (s *Storage) AliasExists(alias string) (bool, error) {
 	}
 
 	return count > 0, nil
+}
+
+func (s *Storage) GetAllUrls() ([]storage.URLRecord, error) {
+	const op = "storage.sqlite.GetAllUrls"
+
+	rows, err := s.db.Query(`SELECT id, url, alias FROM url ORDER BY id`)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	var records []storage.URLRecord
+	for rows.Next() {
+		var record storage.URLRecord
+		err := rows.Scan(&record.ID, &record.URL, &record.Alias)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		records = append(records, record)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return records, nil
 }

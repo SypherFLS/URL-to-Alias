@@ -7,6 +7,7 @@ import (
 	// "fmt"
 	"os"
 	"project/internal/config"
+	"project/internal/http-server/handlers/url/out"
 	"project/internal/http-server/handlers/url/save"
 	"project/internal/http-server/middleware/logger"
 	"project/internal/lib/logger/handlers/slogpretty"
@@ -50,12 +51,10 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-
+	router.Get("/", out.TakeAllUrls(log, storage))
 	router.Post("/url", save.New(log, storage))
-	
 
 	log.Info("starting server", slog.String("address", cfg.HTTP.Address))
-
 
 	if err := http.ListenAndServe(cfg.HTTP.Address, router); err != nil {
 		log.Error("failed to start server", sl.Err(err))

@@ -12,4 +12,11 @@ type Storage interface {
 	GetUrl(alias string) (string, error)
 	DeleteUrl(alias string) error
 	AliasExists(alias string) (bool, error)
+	GetAllUrls() ([]URLRecord, error)
+}
+
+type URLRecord struct {
+	ID    int64  `json:"id"`
+	URL   string `json:"url"`
+	Alias string `json:"alias"`
 }

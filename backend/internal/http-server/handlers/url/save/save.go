@@ -20,7 +20,6 @@ type URLSaver interface {
 	AliasExists(alias string) (bool, error)
 }
 
-const aliasLength = 6
 
 type Request struct {
 	URL   string `json:"url" validate:"required,url"`
@@ -67,21 +66,21 @@ func New(log *slog.Logger, urlSaver URLSaver) http.HandlerFunc {
 
 		alias := req.Alias
 		if alias == "" {
-			log.Info("генерируем новый алиас для URL", slog.String("url", req.URL))
+			log.Info("Generating new alias for URL", slog.String("url", req.URL))
 			alias = random.NewRandomString(req.URL, urlSaver, log)
 		} else {
 			exists, err := urlSaver.AliasExists(alias)
 			if err != nil {
-				log.Error("ошибка при проверке существования алиаса",
+				log.Error("Error checking alias existence",
 					slog.String("alias", alias),
 					sl.Err(err))
-				render.JSON(w, r, resp.Error("ошибка при проверке алиаса"))
+				render.JSON(w, r, resp.Error("Error checking alias existence"))
 				return
 			}
 
 			if exists {
-				log.Error("алиас уже существует", slog.String("alias", alias))
-				render.JSON(w, r, resp.Error("алиас уже существует"))
+				log.Error("Alias already exists", slog.String("alias", alias))
+				render.JSON(w, r, resp.Error("Alias already exists"))
 				return
 			}
 		}
